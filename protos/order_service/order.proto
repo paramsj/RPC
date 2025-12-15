@@ -1,0 +1,74 @@
+syntax = "proto3"
+
+package order_service.v1:
+
+enum OrderStatus {
+    PENDING = 0;
+    PROCESSING = 1;
+    SHIPPED = 2;
+    DELIVERED = 3;
+    CANCELLED = 4;
+}
+
+message Item {
+    string id = 1;
+    string name = 2;
+    double price = 3;
+    int32 quantity = 4;
+}
+
+message Order{
+    string id = 1;
+    OrderStatus status = 2;
+    string address = 3;
+    double total_price = 4;
+    repeated Item items = 5;
+    int64 created_at = 6;
+    int64 updated_at = 7;
+}
+
+message GetRequest {
+
+}
+
+message GetResponse {
+
+}
+
+message ListRequest {
+
+}
+
+message ListResponse {
+
+}
+
+message CreateRequest {
+
+}
+message CreateResponse {
+
+}
+
+message UpdateRequest {
+
+}
+message UpdateResponse {
+
+}
+
+message StreamOrderUpdateRequest {
+
+}
+message StreamOrderUpdateResponse {
+
+}
+
+
+service OrderService {
+    rpc Get(GetRequest) returns (GetResponse);
+    rpc List(ListRequest) returns (ListResponse);
+    rpc Create(CreateRequest) returns (CreateResponse);
+    rpc Update(UpdateRequest) returns (UpdateRequest);
+    rpc StreamOrderUpdates(StreamOrderUpdateRequest) returns (StreamOrderUpdateRequest);
+}
