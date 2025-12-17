@@ -39,3 +39,12 @@ CMakeUserPresets.json
 
 # External projects
 *-prefix/
+
+# say no to gen proto!
+genproto/
+*.pb.cc
+*.pb.h
+
+
+# vscode/editor files
+.vscode/
