@@ -1,12 +1,15 @@
 #include<bits/stdc++.h>
 #include "order_service/order.pb.h"
+#include "config/config.hpp"
 
 using namespace std;
 
 int main() {
-    order_service::v1::Order order;
-    order.set_id("1");
-
-    cout<<order.id()<<endl;
+    try {
+        Config config = Config::New();
+    } catch (exception &e) {
+        cerr<<e.what()<<endl;
+        return 1;
+    } 
     return 0;
 }
