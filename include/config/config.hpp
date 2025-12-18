@@ -3,8 +3,8 @@
 using namespace std;
 
 inline string get_env(const string &key, const string &default_value) {
-    string value = getenv(key.c_str());
-    return !value.empty() ? value : default_value;
+    const char* value = getenv(key.c_str());
+    return value ? value : default_value;
 }
 struct Config {
     string host;

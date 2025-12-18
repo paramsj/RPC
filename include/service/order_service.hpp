@@ -10,6 +10,9 @@
 #include<vector>
 #include<string>
 #include<mutex>
+#include<chrono>
+#include<time.h>
+#include<thread>
 
 namespace os = order_service::v1;
 
@@ -26,7 +29,7 @@ public :
     grpc::Status List(grpc::ServerContext* context, const os::ListRequest* request, os::ListResponse* response) override;
     grpc::Status Create(grpc::ServerContext* context, const os::CreateRequest* request, os::CreateResponse* response) override;
     grpc::Status Update(grpc::ServerContext* context, const os::UpdateRequest* request, os::UpdateResponse* response) override;
-    grpc::Status StreamOrderUpdates(grpc::ServerContext* context, const os::StreamOrderUpdateRequest* request, os::StreamOrderUpdateResponse* response) override;
+    grpc::Status StreamOrderUpdates(::grpc::ServerContext* context, const os::StreamOrderUpdateRequest* request, ::grpc::ServerWriter< os::StreamOrderUpdateResponse>* writer) override;
 
 private :
 

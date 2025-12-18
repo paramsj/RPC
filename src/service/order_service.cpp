@@ -75,7 +75,7 @@ Status OrderService::List(ServerContext *ctx, const os::ListRequest *request, os
     std::lock_guard<std::mutex> lock(this->mutex_);
     std::string user_id = request->user_id();
     int limit = request->limit() > 0 ? request->limit() : 10;
-    int limit = request->page() > 0 ? request->page() : 1;
+    int page = request->page() > 0 ? request->page() : 1;
     auto filters = request->filter();
     auto user_order_it = this->user_orders_.find(user_id);
     if(user_order_it==this->user_orders_.end()) {
@@ -127,7 +127,89 @@ Status OrderService::Update(ServerContext *ctx, const os::UpdateRequest *request
     return Status::OK;
 }
 
+Status OrderService::StreamOrderUpdates(ServerContext *ctx, const os::StreamOrderUpdateRequest *request, ServerWriter<os::StreamOrderUpdateResponse> *writer)
+{
+    const std::string &order_id = request->order_id();
 
+    {
+        std::lock_guard<std::mutex> lock(this->mutex_);
+
+        if (!order_id.empty())
+        {
+            // Check specific order
+            auto order_it = this->orders_.find(order_id);
+            if (order_it == this->orders_.end())
+            {
+                return grpc::Status(::grpc::StatusCode::NOT_FOUND, "Order not found");
+            }
+
+            // Send initial update
+            os::StreamOrderUpdateResponse response;
+            *(response.mutable_order()) = order_it->second;
+            response.set_type(os::UpdateType::CREATED);
+            response.set_updated_at(this->get_current_timestamp());
+
+            if (!writer->Write(response))
+            {
+                return grpc::Status::CANCELLED;
+            }
+        }
+        else
+        {
+            return ::grpc::Status(::grpc::StatusCode::INVALID_ARGUMENT,
+                                  "order_id must be specified");
+        }
+    }
+
+    int update_count = 0;
+    while (!ctx->IsCancelled() && update_count < 5)
+    {
+        std::this_thread::sleep_for(std::chrono::seconds(5));
+
+        std::lock_guard<std::mutex> lock(mutex_);
+
+        if (!order_id.empty())
+        {
+            auto order_it = orders_.find(order_id);
+            if (order_it != orders_.end())
+            {
+                os::Order &order = order_it->second;
+                os::OrderStatus current_status = order.status();
+
+                // Progress the status if possible
+                if (current_status == os::OrderStatus::PENDING)
+                {
+                    order.set_status(os::OrderStatus::PROCESSING);
+                }
+                else if (current_status == os::OrderStatus::PROCESSING)
+                {
+                    order.set_status(os::OrderStatus::SHIPPED);
+                }
+                else if (current_status == os::OrderStatus::SHIPPED)
+                {
+                    order.set_status(os::OrderStatus::DELIVERED);
+                }
+                // Only send update if status changed
+                if (current_status != order.status())
+                {
+                    order.set_updated_at(this->get_current_timestamp());
+                    os::StreamOrderUpdateResponse response;
+                    *(response.mutable_order()) = order;
+                    response.set_type(os::UpdateType::STATUS_CHANGE);
+                    response.set_updated_at(this->get_current_timestamp());
+
+                    if (!writer->Write(response))
+                    {
+                        break;
+                    }
+
+                    update_count++;
+                }
+            }
+        }
+    }
+    return ::grpc::Status::OK;
+}
 
 std::string OrderService::generate_id()
 {

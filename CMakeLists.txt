@@ -30,6 +30,8 @@ target_include_directories(${GENPROTO_LIB}
 #linking source files here
 add_executable(${PROJECT_NAME}
     src/main.cpp
+    src/service/order_service.cpp
+    src/server/server.cpp
 )
 
 target_link_libraries(${PROJECT_NAME}
@@ -39,6 +41,23 @@ target_link_libraries(${PROJECT_NAME}
 # we would do it with headers here (include dir>>)
 
 target_include_directories(${PROJECT_NAME} 
+    PUBLIC
+    ${PROJECT_SOURCE_DIR}/include
+)
+
+# cleint here>>
+
+add_executable(client
+    src/client.cpp
+)
+
+target_link_libraries(client
+    PRIVATE
+        ${GENPROTO_LIB}
+)
+# we would do it with headers here (include dir>>)
+
+target_include_directories(client 
     PUBLIC
     ${PROJECT_SOURCE_DIR}/include
 )

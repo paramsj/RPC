@@ -83,5 +83,5 @@ service OrderService {
     rpc List(ListRequest) returns (ListResponse);
     rpc Create(CreateRequest) returns (CreateResponse);
     rpc Update(UpdateRequest) returns (UpdateResponse);
-    rpc StreamOrderUpdates(StreamOrderUpdateRequest) returns (StreamOrderUpdateResponse);
+    rpc StreamOrderUpdates(StreamOrderUpdateRequest) returns (stream StreamOrderUpdateResponse);
 }
